@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ES2022",
+    "allowJs": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "strict": true,
+    "moduleResolution": "Node",
+    "jsx": "react-jsx",
+    "baseUrl": ".",
+    "sourceMap": true,
+    "incremental": true,
+    "paths": {
+      "src/*": ["src/*"]
+    }
+  },
+  "exclude": [
+    "node_modules"
+  ],
+}
