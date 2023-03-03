@@ -1,4 +1,4 @@
-import { CalendarWeekday } from "./Calendar";
+import { CalendarWeekday, ScheduleDayType } from "./Calendar";
 
 export interface Course {
   name: string;
@@ -29,7 +29,7 @@ export interface ClassBaseOccurrence {
 
 export interface ClassWeeklyOccurrence extends ClassBaseOccurrence {
   type: "WEEKLY";
-  week?: "odd" | "even";
+  week?: ScheduleDayType;
 }
 
 export interface ClassSelectedOccurrence extends ClassBaseOccurrence {

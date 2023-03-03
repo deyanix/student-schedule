@@ -1,9 +1,13 @@
-import { CalendarRearrangement, CalendarWeek } from "../models/Calendar";
+import {
+  CalendarRearrangement,
+  CalendarWeek,
+  CalendarWeekday,
+} from "../models/Calendar";
 import { parseDate } from "./courses";
 
 export const rearrangements: CalendarRearrangement[] = [
-  { date: parseDate("2023-04-05"), weekday: "FRIDAY" },
-  { date: parseDate("2023-06-06"), weekday: "FRIDAY" },
+  { date: parseDate("2023-04-05"), weekday: CalendarWeekday.FRIDAY },
+  { date: parseDate("2023-06-06"), weekday: CalendarWeekday.FRIDAY },
 ];
 
 export const weeks: CalendarWeek[] = [

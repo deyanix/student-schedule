@@ -1,5 +1,6 @@
 import { Course, CourseClassType } from "../models/Course";
 import { parse } from "date-fns";
+import { CalendarWeekday } from "../models/Calendar";
 
 export function parseDate(date: string): Date {
   return parse(date, "yyyy-MM-dd", new Date(0));
@@ -18,8 +19,8 @@ export const courses: Course[] = [
         occurrences: [
           {
             type: "WEEKLY",
-            week: "odd",
-            day: "MONDAY",
+            week: "ODD",
+            day: CalendarWeekday.MONDAY,
             start: parseTime("10:15"),
             end: parseTime("12:00"),
           },
@@ -30,7 +31,7 @@ export const courses: Course[] = [
         occurrences: [
           {
             type: "SELECTED",
-            day: "TUESDAY",
+            day: CalendarWeekday.TUESDAY,
             start: parseTime("14:15"),
             end: parseTime("17:00"),
             dates: [
@@ -49,7 +50,7 @@ export const courses: Course[] = [
         occurrences: [
           {
             type: "WEEKLY",
-            day: "WEDNESDAY",
+            day: CalendarWeekday.WEDNESDAY,
             start: parseTime("12:15"),
             end: parseTime("14:00"),
           },
@@ -65,13 +66,13 @@ export const courses: Course[] = [
         occurrences: [
           {
             type: "WEEKLY",
-            day: "TUESDAY",
+            day: CalendarWeekday.TUESDAY,
             start: parseTime("18:15"),
             end: parseTime("20:00"),
           },
           {
             type: "WEEKLY",
-            day: "WEDNESDAY",
+            day: CalendarWeekday.WEDNESDAY,
             start: parseTime("14:15"),
             end: parseTime("16:00"),
           },
@@ -82,7 +83,7 @@ export const courses: Course[] = [
         occurrences: [
           {
             type: "WEEKLY",
-            day: "MONDAY",
+            day: CalendarWeekday.MONDAY,
             start: parseTime("10:15"),
             end: parseTime("13:00"),
           },
@@ -98,7 +99,7 @@ export const courses: Course[] = [
         occurrences: [
           {
             type: "WEEKLY",
-            day: "MONDAY",
+            day: CalendarWeekday.MONDAY,
             start: parseTime("13:15"),
             end: parseTime("15:00"),
           },
@@ -109,7 +110,7 @@ export const courses: Course[] = [
         occurrences: [
           {
             type: "WEEKLY",
-            day: "TUESDAY",
+            day: CalendarWeekday.TUESDAY,
             start: parseTime("13:15"),
             end: parseTime("14:00"),
           },
@@ -120,7 +121,7 @@ export const courses: Course[] = [
         occurrences: [
           {
             type: "WEEKLY",
-            day: "THURSDAY",
+            day: CalendarWeekday.THURSDAY,
             start: parseTime("14:15"),
             end: parseTime("17:00"),
           },
@@ -136,7 +137,7 @@ export const courses: Course[] = [
         occurrences: [
           {
             type: "SELECTED",
-            day: "WEDNESDAY",
+            day: CalendarWeekday.WEDNESDAY,
             start: parseTime("16:15"),
             end: parseTime("18:00"),
             dates: [
@@ -158,13 +159,13 @@ export const courses: Course[] = [
         occurrences: [
           {
             type: "WEEKLY",
-            day: "WEDNESDAY",
+            day: CalendarWeekday.WEDNESDAY,
             start: parseTime("10:15"),
             end: parseTime("11:45"),
           },
           {
             type: "WEEKLY",
-            day: "FRIDAY",
+            day: CalendarWeekday.FRIDAY,
             start: parseTime("10:15"),
             end: parseTime("11:45"),
           },
@@ -180,7 +181,7 @@ export const courses: Course[] = [
         occurrences: [
           {
             type: "WEEKLY",
-            day: "FRIDAY",
+            day: CalendarWeekday.FRIDAY,
             start: parseTime("8:15"),
             end: parseTime("10:00"),
           },
@@ -191,7 +192,7 @@ export const courses: Course[] = [
         occurrences: [
           {
             type: "WEEKLY",
-            day: "WEDNESDAY",
+            day: CalendarWeekday.WEDNESDAY,
             start: parseTime("16:15"),
             end: parseTime("18:00"),
           },
@@ -207,7 +208,7 @@ export const courses: Course[] = [
         occurrences: [
           {
             type: "WEEKLY",
-            day: "FRIDAY",
+            day: CalendarWeekday.FRIDAY,
             start: parseTime("10:15"),
             end: parseTime("12:00"),
           },
@@ -218,7 +219,7 @@ export const courses: Course[] = [
         occurrences: [
           {
             type: "WEEKLY",
-            day: "WEDNESDAY",
+            day: CalendarWeekday.WEDNESDAY,
             start: parseTime("11:15"),
             end: parseTime("12:00"),
           },
@@ -229,7 +230,7 @@ export const courses: Course[] = [
         occurrences: [
           {
             type: "SELECTED",
-            day: "FRIDAY",
+            day: CalendarWeekday.FRIDAY,
             start: parseTime("12:15"),
             end: parseTime("16:00"),
             dates: [
@@ -250,7 +251,7 @@ export const courses: Course[] = [
         occurrences: [
           {
             type: "WEEKLY",
-            day: "THURSDAY",
+            day: CalendarWeekday.THURSDAY,
             start: parseTime("10:15"),
             end: parseTime("12:00"),
           },
@@ -261,7 +262,7 @@ export const courses: Course[] = [
         occurrences: [
           {
             type: "WEEKLY",
-            day: "WEDNESDAY",
+            day: CalendarWeekday.WEDNESDAY,
             start: parseTime("8:30"),
             end: parseTime("10:00"),
           },
@@ -277,7 +278,7 @@ export const courses: Course[] = [
         occurrences: [
           {
             type: "SELECTED",
-            day: "TUESDAY",
+            day: CalendarWeekday.TUESDAY,
             start: parseTime("10:15"),
             end: parseTime("13:00"),
             dates: [
@@ -292,7 +293,7 @@ export const courses: Course[] = [
         occurrences: [
           {
             type: "SELECTED",
-            day: "TUESDAY",
+            day: CalendarWeekday.TUESDAY,
             start: parseTime("10:15"),
             end: parseTime("13:00"),
             dates: [

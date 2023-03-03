@@ -1,6 +1,7 @@
 import * as React from "react";
 import { useMemo } from "react";
 import { ScheduleDay, useSchedule } from "../../context/ScheduleContext";
+import { CalendarWeekday } from "../../models/Calendar";
 
 export interface CalendarDayProps {
   date: Date | undefined;
@@ -33,9 +34,11 @@ export const CalendarDay: React.FC<CalendarDayProps> = (props) => {
       }}
     >
       {props.date?.getDate()}
-      <sup style={{ fontWeight: "bold" }}>
-        {scheduleDay?.rearrangement?.substr(0, 2)}
-      </sup>
+      {scheduleDay?.rearrangement && (
+        <sup style={{ fontWeight: "bold" }}>
+          {CalendarWeekday[scheduleDay.rearrangement].substring(0, 2)}
+        </sup>
+      )}
     </td>
   );
 };
