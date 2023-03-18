@@ -5,10 +5,24 @@ import styled from "styled-components";
 const ScheduleGridCell = styled.div`
   border-width: 0 1px 1px 1px;
   border-style: solid;
-  border-color: rgba(0, 0, 0, 0.25);
+  border-color: rgba(0, 0, 0, 0.2);
 
   &:nth-child(4n + 1) {
     border-top-width: 1px;
+  }
+
+  &:nth-child(8n + 1),
+  &:nth-child(8n + 2),
+  &:nth-child(8n + 3),
+  &:nth-child(8n + 4) {
+    background: #fcf9ec;
+  }
+
+  &:nth-child(8n + 5),
+  &:nth-child(8n + 6),
+  &:nth-child(8n + 7),
+  &:nth-child(8n) {
+    background: #f5f5f5;
   }
 
   &:first-child {
@@ -43,12 +57,20 @@ const ScheduleVerticalHeader = styled.div`
 const ScheduleVerticalHeaderCell = styled.div`
   border-width: 1px 0 1px 2px;
   border-style: solid;
-  border-color: rgba(0, 0, 0, 0.25);
+  border-color: rgba(0, 0, 0, 0.2);
   display: flex;
   justify-content: flex-end;
   align-items: start;
   padding: 2px 4px 0 0;
   font-size: 0.8rem;
+
+  &:nth-child(2n + 1) {
+    background: #fcf9ec;
+  }
+
+  &:nth-child(2n) {
+    background: #f5f5f5;
+  }
 
   &:first-child {
     border-top-width: 2px;
@@ -66,11 +88,12 @@ const ScheduleHorizontalHeader = styled.div`
 const ScheduleHorizontalHeaderCell = styled.div`
   border-width: 2px 1px 0 1px;
   border-style: solid;
-  border-color: rgba(0, 0, 0, 0.25);
+  border-color: rgba(0, 0, 0, 0.2);
   display: flex;
   justify-content: center;
   align-items: center;
   flex-direction: column;
+  background: #ffefc8;
 
   &:first-child {
     border-left-width: 2px;
@@ -82,9 +105,10 @@ const ScheduleHorizontalHeaderCell = styled.div`
 `;
 
 const ScheduleCard = styled.div`
-  background: #dcc7a2;
-  border: 1px solid #a97700;
+  background: #f6e4c2;
+  border: 1px solid rgba(169, 119, 0, 0.36);
   margin: 3px 4px;
+  border-radius: 4px;
 `;
 
 export const Schedule: React.FC = () => {
