@@ -1,15 +1,16 @@
 import * as React from "react";
-import { CalendarDay } from "./CalendarDay";
+import { CalendarDayView } from "./CalendarDayView";
+import { CalendarDay } from "../../../api/Calendar/CalendarService";
 
 export interface CalendarWeekProps {
-  dates: Date[];
+  dates: CalendarDay[];
 }
 
 export const CalendarWeek: React.FC<CalendarWeekProps> = (props) => {
   return (
     <tr>
       {props.dates.map((date) => (
-        <CalendarDay key={date.toISOString()} date={date} />
+        <CalendarDayView key={date.date.toISOString()} date={date} />
       ))}
     </tr>
   );

@@ -2,8 +2,8 @@ import { api } from "../index";
 import { format } from "date-fns";
 import { AxiosRequestConfig, AxiosResponse } from "axios";
 import _ from "lodash";
+import { CalendarWeekDay } from "../Calendar/CalendarService";
 
-export type DayType = "ODD" | "EVEN" | "ODD_EVEN";
 export type ClassType =
   | "LECTURE"
   | "TUTORIAL"
@@ -11,19 +11,12 @@ export type ClassType =
   | "LABORATORY"
   | "PROJECT";
 
-export type WeekdayType =
-  | "MONDAY"
-  | "TUESDAY"
-  | "WEDNESDAY"
-  | "THURSDAY"
-  | "FRIDAY"
-  | "SATURDAY"
-  | "SUNDAY";
+export type ScheduleDayType = "ODD" | "EVEN";
 
 export interface ScheduleModel {
   date: Date;
-  type: DayType | null;
-  rearrangedWeekDay: WeekdayType | null;
+  type: ScheduleDayType | null;
+  rearrangedWeekDay: CalendarWeekDay | null;
   occurrences: ScheduleOccurrence[];
 }
 

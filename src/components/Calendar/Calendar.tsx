@@ -4,24 +4,44 @@ import {
   endOfMonth,
   format,
   getISODay,
+  isSameDay,
   startOfDay,
   startOfMonth,
 } from "date-fns";
 import _ from "lodash";
 import * as React from "react";
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { CalendarWeek } from "./CalendarWeek";
+import {
+  CalendarDay,
+  CalendarService,
+} from "../../../api/Calendar/CalendarService";
 
 export const Calendar: React.FC = () => {
   const [currentMonth, setCurrentMonth] = useState<Date>(
     startOfMonth(new Date())
   );
+  const [calendarDays, setCalendarDays] = useState<CalendarDay[]>([]);
+  const [, setLoading] = useState<boolean>(false);
 
   const currentMonthName = useMemo(() => {
     return format(currentMonth, "LLLL yyyy");
   }, [currentMonth]);
 
-  const weeks = useMemo(() => {
+  const getCalendarDay = useCallback(
+    (date: Date) => {
+      return (
+        calendarDays.find((d) => isSameDay(d.date, date)) ?? {
+          date,
+          rearrangedWeekDay: null,
+          type: null,
+        }
+      );
+    },
+    [calendarDays]
+  );
+
+  const weeks: CalendarDay[][] = useMemo(() => {
     const start = startOfMonth(currentMonth);
     const end = startOfDay(endOfMonth(start));
 
@@ -39,8 +59,15 @@ export const Calendar: React.FC = () => {
     }
     result.push(...nextMonthDays);
 
-    return _.chunk(result, 7);
-  }, [currentMonth]);
+    return _.chunk(result.map(getCalendarDay), 7);
+  }, [currentMonth, getCalendarDay]);
+
+  useEffect(() => {
+    setLoading(true);
+    CalendarService.getCalendar()
+      .then((days) => setCalendarDays(days))
+      .finally(() => setLoading(false));
+  }, []);
 
   return (
     <>
@@ -67,7 +94,7 @@ export const Calendar: React.FC = () => {
         </thead>
         <tbody>
           {weeks.map((dates) => (
-            <CalendarWeek key={dates[0].toISOString()} dates={dates} />
+            <CalendarWeek key={dates[0].date.toISOString()} dates={dates} />
           ))}
         </tbody>
       </table>

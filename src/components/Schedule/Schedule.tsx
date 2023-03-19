@@ -1,12 +1,11 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import _ from "lodash";
 import styled from "styled-components";
 import {
-  DayType,
+  ScheduleDayType,
   ScheduleModel,
   ScheduleOccurrence,
   ScheduleService,
-  WeekdayType,
 } from "../../../api/Schedule/ScheduleService";
 import {
   addDays,
@@ -17,6 +16,10 @@ import {
   startOfISOWeek,
 } from "date-fns";
 import { ScheduleOccurrenceView } from "./ScheduleOccurrenceView";
+import {
+  CalendarService,
+  CalendarWeekDay,
+} from "../../../api/Calendar/CalendarService";
 
 const ScheduleGridCell = styled.div`
   border-width: 0 1px 1px 1px;
@@ -128,8 +131,8 @@ export interface ScheduleRenderedColumn {
   date: Date;
   width: number;
   column: number;
-  type: DayType | null;
-  rearrangedWeekDay: WeekdayType | null;
+  type: ScheduleDayType | null;
+  rearrangedWeekDay: CalendarWeekDay | null;
   weekDay: string;
   occurrences: ScheduleRenderedOccurrence[];
 }
@@ -154,11 +157,15 @@ function isOverlapOccurrence(
 
 export const Schedule: React.FC<ScheduleProps> = (props) => {
   const [loading, setLoading] = useState<boolean>(false);
-  const [dates, setDates] = useState<Date[]>([]);
   const [schedules, setSchedules] = useState<ScheduleModel[]>([]);
   const [renderedSchedules, setRenderedSchedules] = useState<
     ScheduleRenderedColumn[]
   >([]);
+
+  const dates = useMemo(() => {
+    const start = startOfISOWeek(props.date);
+    return _.times(5).map((i) => addDays(start, i));
+  }, [props.date]);
 
   const renderSchedule = useCallback(
     (schedule: ScheduleModel): ScheduleRenderedColumn => {
@@ -210,37 +217,12 @@ export const Schedule: React.FC<ScheduleProps> = (props) => {
       });
 
       let weekdayDate = schedule.date;
-      switch (schedule.rearrangedWeekDay) {
-        case "MONDAY":
-          console.log("A1");
-          weekdayDate = setISODay(weekdayDate, 1);
-          break;
-        case "TUESDAY":
-          console.log("A2");
-          weekdayDate = setISODay(weekdayDate, 2);
-          break;
-        case "WEDNESDAY":
-          console.log("A3");
-          weekdayDate = setISODay(weekdayDate, 3);
-          break;
-        case "THURSDAY":
-          console.log("A4");
-          weekdayDate = setISODay(weekdayDate, 4);
-          break;
-        case "FRIDAY":
-          console.log("A5");
-          weekdayDate = setISODay(weekdayDate, 5);
-          break;
-        case "SATURDAY":
-          console.log("A6");
-          weekdayDate = setISODay(weekdayDate, 6);
-          break;
-        case "SUNDAY":
-          console.log("A7");
-          weekdayDate = setISODay(weekdayDate, 0);
-          break;
+      if (!_.isNil(schedule.rearrangedWeekDay)) {
+        weekdayDate = setISODay(
+          weekdayDate,
+          CalendarService.getISOWeekDay(schedule.rearrangedWeekDay)
+        );
       }
-      console.log(schedule.type);
 
       return {
         date: schedule.date,
@@ -257,10 +239,6 @@ export const Schedule: React.FC<ScheduleProps> = (props) => {
 
   const renderSchedules = useCallback(
     (schedules: ScheduleModel[]): ScheduleRenderedColumn[] => {
-      console.log(
-        schedules.map((s) => s.date),
-        dates
-      );
       const rendered = dates
         .map((d) => {
           const found = schedules.find((s) => isSameDay(s.date, d));
@@ -296,17 +274,13 @@ export const Schedule: React.FC<ScheduleProps> = (props) => {
   );
 
   useEffect(() => {
-    const start = startOfISOWeek(props.date);
-    setDates(_.times(5).map((i) => addDays(start, i)));
-  }, [props.date]);
+    const controller = new AbortController();
 
-  useEffect(() => {
     setLoading(true);
-    ScheduleService.getWeek(props.date)
-      .then((schedules) => {
-        setSchedules(schedules);
-      })
+    ScheduleService.getWeek(props.date, { signal: controller.signal })
+      .then((schedules) => setSchedules(schedules))
       .finally(() => setLoading(false));
+    return () => controller.abort();
   }, [props.date]);
 
   useEffect(() => {
@@ -322,6 +296,7 @@ export const Schedule: React.FC<ScheduleProps> = (props) => {
           .map((col) => `repeat(${col.width}, ${1 / col.width}fr)`)
           .join(" ")}`,
         opacity: loading ? 0.5 : 1,
+        minWidth: 960,
       }}
     >
       <ScheduleGrid>
