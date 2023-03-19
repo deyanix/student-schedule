@@ -1,6 +1,6 @@
 import * as React from "react";
-import { Schedule } from "./components/Schedule/Schedule";
+import { SchedulePage } from "./pages/SchedulePage";
 
 export const App: React.FC = () => {
-  return <Schedule />;
+  return <SchedulePage />;
 };

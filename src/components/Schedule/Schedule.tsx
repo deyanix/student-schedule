@@ -1,14 +1,44 @@
-import React from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import _ from "lodash";
 import styled from "styled-components";
+import {
+  DayType,
+  ScheduleModel,
+  ScheduleOccurrence,
+  ScheduleService,
+  WeekdayType,
+} from "../../../api/Schedule/ScheduleService";
+import {
+  addDays,
+  differenceInMinutes,
+  format,
+  isSameDay,
+  setISODay,
+  startOfISOWeek,
+} from "date-fns";
+import { ScheduleOccurrenceView } from "./ScheduleOccurrenceView";
 
 const ScheduleGridCell = styled.div`
   border-width: 0 1px 1px 1px;
   border-style: solid;
-  border-color: rgba(0, 0, 0, 0.25);
+  border-color: rgba(0, 0, 0, 0.2);
 
   &:nth-child(4n + 1) {
     border-top-width: 1px;
+  }
+
+  &:nth-child(8n + 1),
+  &:nth-child(8n + 2),
+  &:nth-child(8n + 3),
+  &:nth-child(8n + 4) {
+    background: #fcf9ec;
+  }
+
+  &:nth-child(8n + 5),
+  &:nth-child(8n + 6),
+  &:nth-child(8n + 7),
+  &:nth-child(8n) {
+    background: #f5f5f5;
   }
 
   &:first-child {
@@ -43,12 +73,20 @@ const ScheduleVerticalHeader = styled.div`
 const ScheduleVerticalHeaderCell = styled.div`
   border-width: 1px 0 1px 2px;
   border-style: solid;
-  border-color: rgba(0, 0, 0, 0.25);
+  border-color: rgba(0, 0, 0, 0.2);
   display: flex;
   justify-content: flex-end;
   align-items: start;
   padding: 2px 4px 0 0;
   font-size: 0.8rem;
+
+  &:nth-child(2n + 1) {
+    background: #fcf9ec;
+  }
+
+  &:nth-child(2n) {
+    background: #f5f5f5;
+  }
 
   &:first-child {
     border-top-width: 2px;
@@ -66,11 +104,12 @@ const ScheduleHorizontalHeader = styled.div`
 const ScheduleHorizontalHeaderCell = styled.div`
   border-width: 2px 1px 0 1px;
   border-style: solid;
-  border-color: rgba(0, 0, 0, 0.25);
+  border-color: rgba(0, 0, 0, 0.2);
   display: flex;
   justify-content: center;
   align-items: center;
   flex-direction: column;
+  background: #ffefc8;
 
   &:first-child {
     border-left-width: 2px;
@@ -81,36 +120,226 @@ const ScheduleHorizontalHeaderCell = styled.div`
   }
 `;
 
-const ScheduleCard = styled.div`
-  background: #dcc7a2;
-  border: 1px solid #a97700;
-  margin: 3px 4px;
-`;
+export interface ScheduleProps {
+  date: Date;
+}
 
-export const Schedule: React.FC = () => {
+export interface ScheduleRenderedColumn {
+  date: Date;
+  width: number;
+  column: number;
+  type: DayType | null;
+  rearrangedWeekDay: WeekdayType | null;
+  weekDay: string;
+  occurrences: ScheduleRenderedOccurrence[];
+}
+
+export interface ScheduleRenderedOccurrence {
+  occurrence: ScheduleOccurrence;
+  rowStart: number;
+  rowEnd: number;
+  columnStart: number;
+  columnEnd: number;
+}
+
+function isOverlapOccurrence(
+  o1: ScheduleOccurrence,
+  o2: ScheduleOccurrence
+): boolean {
+  return (
+    (o1.start >= o2.start && o1.start < o2.end) ||
+    (o1.end > o2.start && o1.end < o2.end)
+  );
+}
+
+export const Schedule: React.FC<ScheduleProps> = (props) => {
+  const [loading, setLoading] = useState<boolean>(false);
+  const [dates, setDates] = useState<Date[]>([]);
+  const [schedules, setSchedules] = useState<ScheduleModel[]>([]);
+  const [renderedSchedules, setRenderedSchedules] = useState<
+    ScheduleRenderedColumn[]
+  >([]);
+
+  const renderSchedule = useCallback(
+    (schedule: ScheduleModel): ScheduleRenderedColumn => {
+      let width =
+        _.chain(schedule.occurrences)
+          .flatMap(
+            (o1) =>
+              _.chain(schedule.occurrences)
+                .filter((o2) => o2 !== o1 && isOverlapOccurrence(o1, o2))
+                .value().length
+          )
+          .max()
+          .value() + 1;
+      if (_.isNaN(width)) {
+        width = 1;
+      }
+
+      const occurrences = _.chain(schedule.occurrences)
+        .map((o1) => ({
+          occurrence: o1,
+          columnStart: 0,
+          columnEnd: width,
+          rowStart:
+            (differenceInMinutes(o1.start, schedule.date) - 8 * 60) / 15,
+          rowEnd: (differenceInMinutes(o1.end, schedule.date) - 8 * 60) / 15,
+        }))
+        .value();
+
+      const collisions = _.chain(occurrences)
+        .map((o1) =>
+          _.chain(occurrences)
+            .filter(
+              (o2) =>
+                o2 !== o1 && isOverlapOccurrence(o1.occurrence, o2.occurrence)
+            )
+            .push(o1)
+            .orderBy([(o2) => o2.occurrence.start, (o2) => o2.occurrence.end])
+            .value()
+        )
+        .filter((o) => o.length > 1)
+        .uniqWith(_.isEqual)
+        .value();
+
+      collisions.forEach((group) => {
+        group.forEach((block, i) => {
+          block.columnStart += i;
+          block.columnEnd -= group.length - 1;
+        });
+      });
+
+      let weekdayDate = schedule.date;
+      switch (schedule.rearrangedWeekDay) {
+        case "MONDAY":
+          console.log("A1");
+          weekdayDate = setISODay(weekdayDate, 1);
+          break;
+        case "TUESDAY":
+          console.log("A2");
+          weekdayDate = setISODay(weekdayDate, 2);
+          break;
+        case "WEDNESDAY":
+          console.log("A3");
+          weekdayDate = setISODay(weekdayDate, 3);
+          break;
+        case "THURSDAY":
+          console.log("A4");
+          weekdayDate = setISODay(weekdayDate, 4);
+          break;
+        case "FRIDAY":
+          console.log("A5");
+          weekdayDate = setISODay(weekdayDate, 5);
+          break;
+        case "SATURDAY":
+          console.log("A6");
+          weekdayDate = setISODay(weekdayDate, 6);
+          break;
+        case "SUNDAY":
+          console.log("A7");
+          weekdayDate = setISODay(weekdayDate, 0);
+          break;
+      }
+      console.log(schedule.type);
+
+      return {
+        date: schedule.date,
+        column: 0,
+        width,
+        type: schedule.type,
+        rearrangedWeekDay: schedule.rearrangedWeekDay,
+        weekDay: format(weekdayDate, "EEEE"),
+        occurrences,
+      };
+    },
+    []
+  );
+
+  const renderSchedules = useCallback(
+    (schedules: ScheduleModel[]): ScheduleRenderedColumn[] => {
+      console.log(
+        schedules.map((s) => s.date),
+        dates
+      );
+      const rendered = dates
+        .map((d) => {
+          const found = schedules.find((s) => isSameDay(s.date, d));
+          if (_.isNil(found)) {
+            return {
+              date: d,
+              type: null,
+              rearrangedWeekDay: null,
+              occurrences: [],
+            };
+          }
+          return found;
+        })
+        .map((s) => renderSchedule(s as ScheduleModel));
+
+      return rendered.map((s1, index1) => {
+        const before = rendered.slice(0, index1);
+        let offset = _.sumBy(before, (s2) => s2.width);
+        if (_.isNaN(offset)) {
+          offset = 0;
+        }
+
+        s1.column += offset;
+        s1.occurrences.forEach((o) => {
+          o.columnStart += offset;
+          o.columnEnd += offset;
+        });
+
+        return s1;
+      });
+    },
+    [dates, renderSchedule]
+  );
+
+  useEffect(() => {
+    const start = startOfISOWeek(props.date);
+    setDates(_.times(5).map((i) => addDays(start, i)));
+  }, [props.date]);
+
+  useEffect(() => {
+    setLoading(true);
+    ScheduleService.getWeek(props.date)
+      .then((schedules) => {
+        setSchedules(schedules);
+      })
+      .finally(() => setLoading(false));
+  }, [props.date]);
+
+  useEffect(() => {
+    setRenderedSchedules(renderSchedules(schedules));
+  }, [schedules, renderSchedules]);
+
   return (
     <div
       style={{
         display: "grid",
         gridTemplateRows: "50px repeat(52, 15px)",
-        gridTemplateColumns: "50px repeat(10, 1fr)",
+        gridTemplateColumns: `50px ${renderedSchedules
+          .map((col) => `repeat(${col.width}, ${1 / col.width}fr)`)
+          .join(" ")}`,
+        opacity: loading ? 0.5 : 1,
       }}
     >
       <ScheduleGrid>
-        {_.times(5).map((column) => (
+        {renderedSchedules.map((column) => (
           <ScheduleGridColumn>
             {_.times(52).map((row) => (
               <ScheduleGridCell
                 style={{
                   gridRow: row + 2,
-                  gridColumn: `${column * 2 + 2} / ${(column + 1) * 2 + 2}`,
+                  gridColumn: `${column.column + 2} / ${
+                    column.column + column.width + 2
+                  }`,
                 }}
               />
             ))}
           </ScheduleGridColumn>
         ))}
       </ScheduleGrid>
-
       <ScheduleVerticalHeader>
         {_.times(13).map((row) => (
           <ScheduleVerticalHeaderCell
@@ -123,43 +352,41 @@ export const Schedule: React.FC = () => {
           </ScheduleVerticalHeaderCell>
         ))}
       </ScheduleVerticalHeader>
-
       <ScheduleHorizontalHeader>
-        {["Poniedziałek", "Wtorek", "Środa", "Czwartek", "Piątek"].map(
-          (day, column) => (
-            <ScheduleHorizontalHeaderCell
-              style={{
-                gridRow: 1,
-                gridColumn: `${column * 2 + 2} / ${(column + 1) * 2 + 2}`,
-              }}
-            >
-              <div style={{ fontSize: "0.8rem" }}>{day}</div>
-              <div style={{ fontWeight: 600 }}>
-                {(column + 1).toString().padStart(2, "0")}.01.2023
-              </div>
-            </ScheduleHorizontalHeaderCell>
-          )
-        )}
+        {renderedSchedules.map((column) => (
+          <ScheduleHorizontalHeaderCell
+            style={{
+              gridRow: 1,
+              gridColumn: `${column.column + 2} / ${
+                column.column + column.width + 2
+              }`,
+              background: loading
+                ? undefined
+                : _.isNil(column.type) && !loading
+                ? "#8dbcf8"
+                : !_.isNil(column.rearrangedWeekDay)
+                ? "#cfdc90"
+                : undefined,
+            }}
+          >
+            <div style={{ fontSize: "0.8rem" }}>{column.weekDay}</div>
+            <div style={{ fontWeight: 600 }}>
+              {format(column.date, "dd.MM.yyyy")}
+            </div>
+          </ScheduleHorizontalHeaderCell>
+        ))}
       </ScheduleHorizontalHeader>
-
-      <ScheduleCard
-        style={{
-          gridRow: "3 / 10",
-          gridColumn: 2,
-        }}
-      />
-      <ScheduleCard
-        style={{
-          gridRow: "11 / 14",
-          gridColumn: 2,
-        }}
-      />
-      <ScheduleCard
-        style={{
-          gridRow: "11 / 22",
-          gridColumn: 3,
-        }}
-      />
+      {renderedSchedules.map((renderedColumn) =>
+        renderedColumn.occurrences.map((occurrence) => (
+          <ScheduleOccurrenceView
+            occurrence={occurrence.occurrence}
+            columnStart={occurrence.columnStart + 2}
+            columnEnd={occurrence.columnEnd + 2}
+            rowStart={occurrence.rowStart + 2}
+            rowEnd={occurrence.rowEnd + 2}
+          />
+        ))
+      )}
     </div>
   );
 };
