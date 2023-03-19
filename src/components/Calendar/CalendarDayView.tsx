@@ -6,7 +6,6 @@ export interface CalendarDayProps {
 }
 
 export const CalendarDayView: React.FC<CalendarDayProps> = (props) => {
-  console.log(props.date);
   return (
     <td
       style={{

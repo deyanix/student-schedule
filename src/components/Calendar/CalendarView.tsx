@@ -1,8 +1,6 @@
 import {
   addDays,
-  addMonths,
   endOfMonth,
-  format,
   getISODay,
   isSameDay,
   startOfDay,
@@ -17,16 +15,13 @@ import {
   CalendarService,
 } from "../../../api/Calendar/CalendarService";
 
-export const Calendar: React.FC = () => {
-  const [currentMonth, setCurrentMonth] = useState<Date>(
-    startOfMonth(new Date())
-  );
+export interface CalendarViewProps {
+  month: Date;
+}
+
+export const CalendarView: React.FC<CalendarViewProps> = (props) => {
   const [calendarDays, setCalendarDays] = useState<CalendarDay[]>([]);
   const [, setLoading] = useState<boolean>(false);
-
-  const currentMonthName = useMemo(() => {
-    return format(currentMonth, "LLLL yyyy");
-  }, [currentMonth]);
 
   const getCalendarDay = useCallback(
     (date: Date) => {
@@ -42,7 +37,7 @@ export const Calendar: React.FC = () => {
   );
 
   const weeks: CalendarDay[][] = useMemo(() => {
-    const start = startOfMonth(currentMonth);
+    const start = startOfMonth(props.month);
     const end = startOfDay(endOfMonth(start));
 
     const previousMonthDays = _.times(getISODay(start) - 1)
@@ -60,7 +55,7 @@ export const Calendar: React.FC = () => {
     result.push(...nextMonthDays);
 
     return _.chunk(result.map(getCalendarDay), 7);
-  }, [currentMonth, getCalendarDay]);
+  }, [props.month, getCalendarDay]);
 
   useEffect(() => {
     setLoading(true);
@@ -71,15 +66,6 @@ export const Calendar: React.FC = () => {
 
   return (
     <>
-      <div style={{ display: "flex", justifyContent: "space-between" }}>
-        <button onClick={() => setCurrentMonth(addMonths(currentMonth, -1))}>
-          &lt;
-        </button>
-        <span>{currentMonthName}</span>
-        <button onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}>
-          &gt;
-        </button>
-      </div>
       <table style={{ border: "2px solid black", borderCollapse: "collapse" }}>
         <thead>
           <tr>

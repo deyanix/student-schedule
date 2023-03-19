@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import _ from "lodash";
 import styled from "styled-components";
 import {
@@ -7,19 +7,13 @@ import {
   ScheduleOccurrence,
   ScheduleService,
 } from "../../../api/Schedule/ScheduleService";
-import {
-  addDays,
-  differenceInMinutes,
-  format,
-  isSameDay,
-  setISODay,
-  startOfISOWeek,
-} from "date-fns";
+import { differenceInMinutes, format, isSameDay, setISODay } from "date-fns";
 import { ScheduleOccurrenceView } from "./ScheduleOccurrenceView";
 import {
   CalendarService,
   CalendarWeekDay,
 } from "../../../api/Calendar/CalendarService";
+import axios from "axios";
 
 const ScheduleGridCell = styled.div`
   border-width: 0 1px 1px 1px;
@@ -124,7 +118,7 @@ const ScheduleHorizontalHeaderCell = styled.div`
 `;
 
 export interface ScheduleProps {
-  date: Date;
+  dates: Date[];
 }
 
 export interface ScheduleRenderedColumn {
@@ -161,11 +155,6 @@ export const Schedule: React.FC<ScheduleProps> = (props) => {
   const [renderedSchedules, setRenderedSchedules] = useState<
     ScheduleRenderedColumn[]
   >([]);
-
-  const dates = useMemo(() => {
-    const start = startOfISOWeek(props.date);
-    return _.times(5).map((i) => addDays(start, i));
-  }, [props.date]);
 
   const renderSchedule = useCallback(
     (schedule: ScheduleModel): ScheduleRenderedColumn => {
@@ -239,7 +228,7 @@ export const Schedule: React.FC<ScheduleProps> = (props) => {
 
   const renderSchedules = useCallback(
     (schedules: ScheduleModel[]): ScheduleRenderedColumn[] => {
-      const rendered = dates
+      const rendered = props.dates
         .map((d) => {
           const found = schedules.find((s) => isSameDay(s.date, d));
           if (_.isNil(found)) {
@@ -270,18 +259,29 @@ export const Schedule: React.FC<ScheduleProps> = (props) => {
         return s1;
       });
     },
-    [dates, renderSchedule]
+    [props.dates, renderSchedule]
   );
 
   useEffect(() => {
     const controller = new AbortController();
 
     setLoading(true);
-    ScheduleService.getWeek(props.date, { signal: controller.signal })
-      .then((schedules) => setSchedules(schedules))
-      .finally(() => setLoading(false));
-    return () => controller.abort();
-  }, [props.date]);
+    ScheduleService.getWeek(props.dates[0], { signal: controller.signal })
+      .then((schedules) => {
+        setSchedules(schedules);
+        setLoading(false);
+      })
+      .catch((err) => {
+        if (!axios.isAxiosError(err) || err.name !== "CanceledError") {
+          setLoading(false);
+          throw err;
+        }
+      });
+
+    return () => {
+      controller.abort();
+    };
+  }, [props.dates]);
 
   useEffect(() => {
     setRenderedSchedules(renderSchedules(schedules));
