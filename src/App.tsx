@@ -24,6 +24,10 @@ const GlobalStyle = createGlobalStyle`
   body {
     margin: 0;
   }
+  
+  html, body, #app {
+    width: 100%;
+  }
 `;
 
 const Header = styled.div`

@@ -16,7 +16,7 @@ import {
 import axios from "axios";
 
 const ScheduleGridCell = styled.div`
-  border-width: 0 1px 1px 1px;
+  border-width: 0 0 0 1px;
   border-style: solid;
   border-color: rgba(0, 0, 0, 0.2);
 
@@ -24,39 +24,17 @@ const ScheduleGridCell = styled.div`
     border-top-width: 1px;
   }
 
-  &:nth-child(8n + 1),
-  &:nth-child(8n + 2),
-  &:nth-child(8n + 3),
-  &:nth-child(8n + 4) {
-    background: #fcf9ec;
-  }
-
-  &:nth-child(8n + 5),
-  &:nth-child(8n + 6),
-  &:nth-child(8n + 7),
-  &:nth-child(8n) {
-    background: #f5f5f5;
-  }
-
   &:first-child {
-    border-top-width: 2px;
+    border-top-width: 1px;
   }
 
   &:last-child {
-    border-bottom-width: 2px;
+    border-bottom-width: 1px;
   }
 `;
 
 const ScheduleGridColumn = styled.div`
   display: contents;
-
-  &:first-child ${ScheduleGridCell} {
-    border-left-width: 2px;
-  }
-
-  &:last-child ${ScheduleGridCell} {
-    border-right-width: 2px;
-  }
 `;
 
 const ScheduleGrid = styled.div`
@@ -68,7 +46,7 @@ const ScheduleVerticalHeader = styled.div`
 `;
 
 const ScheduleVerticalHeaderCell = styled.div`
-  border-width: 1px 0 1px 2px;
+  border-width: 1px 0 0 0;
   border-style: solid;
   border-color: rgba(0, 0, 0, 0.2);
   display: flex;
@@ -77,20 +55,12 @@ const ScheduleVerticalHeaderCell = styled.div`
   padding: 2px 4px 0 0;
   font-size: 0.8rem;
 
-  &:nth-child(2n + 1) {
-    background: #fcf9ec;
-  }
-
-  &:nth-child(2n) {
-    background: #f5f5f5;
-  }
-
   &:first-child {
-    border-top-width: 2px;
+    border-top-width: 1px;
   }
 
   &:last-child {
-    border-bottom-width: 2px;
+    border-bottom-width: 1px;
   }
 `;
 
@@ -99,21 +69,17 @@ const ScheduleHorizontalHeader = styled.div`
 `;
 
 const ScheduleHorizontalHeaderCell = styled.div`
-  border-width: 2px 1px 0 1px;
-  border-style: solid;
-  border-color: rgba(0, 0, 0, 0.2);
   display: flex;
   justify-content: center;
   align-items: center;
   flex-direction: column;
-  background: #ffefc8;
 
   &:first-child {
-    border-left-width: 2px;
+    border-top-left-radius: 8px;
   }
 
   &:last-child {
-    border-right-width: 2px;
+    border-top-right-radius: 8px;
   }
 `;
 
@@ -290,78 +256,93 @@ export const Schedule: React.FC<ScheduleProps> = (props) => {
   return (
     <div
       style={{
-        display: "grid",
-        gridTemplateRows: "50px repeat(52, 15px)",
-        gridTemplateColumns: `50px ${renderedSchedules
-          .map((col) => `repeat(${col.width}, ${1 / col.width}fr)`)
-          .join(" ")}`,
-        opacity: loading ? 0.5 : 1,
-        minWidth: 960,
+        overflowX: "auto",
       }}
     >
-      <ScheduleGrid>
-        {renderedSchedules.map((column) => (
-          <ScheduleGridColumn>
-            {_.times(52).map((row) => (
-              <ScheduleGridCell
+      <div
+        style={{
+          display: "grid",
+          gridTemplateRows: "50px repeat(52, 15px)",
+          gridTemplateColumns: `50px ${renderedSchedules
+            .map((col) => `repeat(${col.width}, ${1 / col.width}fr)`)
+            .join(" ")}`,
+          opacity: loading ? 0.5 : 1,
+        }}
+      >
+        <ScheduleGrid>
+          {renderedSchedules.map((column) => (
+            <ScheduleGridColumn>
+              {_.times(52).map((row) => (
+                <ScheduleGridCell
+                  style={{
+                    gridRow: row + 2,
+                    gridColumn: `${column.column + 2} / ${
+                      column.column + column.width + 2
+                    }`,
+                  }}
+                />
+              ))}
+            </ScheduleGridColumn>
+          ))}
+        </ScheduleGrid>
+        <ScheduleVerticalHeader>
+          {_.times(13).map((row) => (
+            <ScheduleVerticalHeaderCell
+              style={{
+                gridRow: `${row * 4 + 2} / ${(row + 1) * 4 + 2}`,
+                gridColumn: 1,
+              }}
+            >
+              {(8 + row).toString().padStart(2, "0")}:00
+            </ScheduleVerticalHeaderCell>
+          ))}
+        </ScheduleVerticalHeader>
+        <ScheduleHorizontalHeader>
+          {renderedSchedules.map((column) => (
+            <ScheduleHorizontalHeaderCell
+              style={{
+                gridRow: 1,
+                gridColumn: `${column.column + 2} / ${
+                  column.column + column.width + 2
+                }`,
+              }}
+            >
+              <div
                 style={{
-                  gridRow: row + 2,
-                  gridColumn: `${column.column + 2} / ${
-                    column.column + column.width + 2
-                  }`,
+                  fontSize: "0.8rem",
+                  color: loading
+                    ? undefined
+                    : _.isNil(column.type) && !loading
+                    ? "#8dbcf8"
+                    : !_.isNil(column.rearrangedWeekDay)
+                    ? "#7d9954"
+                    : undefined,
                 }}
-              />
-            ))}
-          </ScheduleGridColumn>
-        ))}
-      </ScheduleGrid>
-      <ScheduleVerticalHeader>
-        {_.times(13).map((row) => (
-          <ScheduleVerticalHeaderCell
-            style={{
-              gridRow: `${row * 4 + 2} / ${(row + 1) * 4 + 2}`,
-              gridColumn: 1,
-            }}
-          >
-            {(8 + row).toString().padStart(2, "0")}:00
-          </ScheduleVerticalHeaderCell>
-        ))}
-      </ScheduleVerticalHeader>
-      <ScheduleHorizontalHeader>
-        {renderedSchedules.map((column) => (
-          <ScheduleHorizontalHeaderCell
-            style={{
-              gridRow: 1,
-              gridColumn: `${column.column + 2} / ${
-                column.column + column.width + 2
-              }`,
-              background: loading
-                ? undefined
-                : _.isNil(column.type) && !loading
-                ? "#8dbcf8"
-                : !_.isNil(column.rearrangedWeekDay)
-                ? "#cfdc90"
-                : undefined,
-            }}
-          >
-            <div style={{ fontSize: "0.8rem" }}>{column.weekDay}</div>
-            <div style={{ fontWeight: 600 }}>
-              {format(column.date, "dd.MM.yyyy")}
-            </div>
-          </ScheduleHorizontalHeaderCell>
-        ))}
-      </ScheduleHorizontalHeader>
-      {renderedSchedules.map((renderedColumn) =>
-        renderedColumn.occurrences.map((occurrence) => (
-          <ScheduleOccurrenceView
-            occurrence={occurrence.occurrence}
-            columnStart={occurrence.columnStart + 2}
-            columnEnd={occurrence.columnEnd + 2}
-            rowStart={occurrence.rowStart + 2}
-            rowEnd={occurrence.rowEnd + 2}
-          />
-        ))
-      )}
+              >
+                {column.weekDay}
+              </div>
+              <div
+                style={{
+                  fontWeight: 600,
+                }}
+              >
+                {format(column.date, "dd.MM.yyyy")}
+              </div>
+            </ScheduleHorizontalHeaderCell>
+          ))}
+        </ScheduleHorizontalHeader>
+        {renderedSchedules.map((renderedColumn) =>
+          renderedColumn.occurrences.map((occurrence) => (
+            <ScheduleOccurrenceView
+              occurrence={occurrence.occurrence}
+              columnStart={occurrence.columnStart + 2}
+              columnEnd={occurrence.columnEnd + 2}
+              rowStart={occurrence.rowStart + 2}
+              rowEnd={occurrence.rowEnd + 2}
+            />
+          ))
+        )}
+      </div>
     </div>
   );
 };

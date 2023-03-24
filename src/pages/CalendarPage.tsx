@@ -1,7 +1,7 @@
-import React, { useMemo } from "react";
+import React, { useCallback, useMemo } from "react";
 import { CalendarView } from "../components/Calendar/CalendarView";
 import { addMonths, format, parse, startOfMonth } from "date-fns";
-import { Link, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import _ from "lodash";
 import styled from "styled-components";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -10,7 +10,7 @@ import { faChevronRight } from "@fortawesome/free-solid-svg-icons/faChevronRight
 import { transparentize } from "polished";
 import { Container } from "../components/Utils";
 
-export const StyledLink = styled(Link)`
+export const CalendarHeaderButton = styled.button`
   width: 32px;
   height: 32px;
   border-radius: 50%;
@@ -21,10 +21,30 @@ export const StyledLink = styled(Link)`
   align-items: center;
   margin-right: 16px;
   transition: background-color 0.15s;
+  cursor: pointer;
+  border: none;
+  background-color: #ffffff;
 
   &:hover {
     background: ${(props) => transparentize(0.7, props.theme.primary)};
   }
+`;
+
+export const CalendarHeaderContainer = styled(Container)`
+  display: flex;
+  align-items: center;
+`;
+
+export const CalendarSubheaderTitle = styled.div`
+  font-size: 1rem;
+  font-weight: 600;
+  color: #4d4d4d;
+  margin-left: 8px;
+`;
+
+export const CalendarHeaderTitle = styled.div`
+  font-size: 1.4rem;
+  font-weight: 500;
 `;
 
 export const CalendarHeader = styled.div`
@@ -39,6 +59,8 @@ export const CalendarHeader = styled.div`
 
 export const CalendarPage: React.FC = () => {
   const [params] = useSearchParams();
+  const navigate = useNavigate();
+
   const currentMonth = useMemo<Date>(() => {
     const queryDate = params.get("date");
     if (!_.isNil(queryDate)) {
@@ -52,30 +74,32 @@ export const CalendarPage: React.FC = () => {
     return format(currentMonth, "LLLL yyyy");
   }, [currentMonth]);
 
-  const previousUrl = useMemo(
-    () => `/calendar?date=${format(addMonths(currentMonth, -1), "yyyy-MM")}`,
-    [currentMonth]
-  );
+  const onNextClick = useCallback(() => {
+    navigate(
+      `/calendar?date=${format(addMonths(currentMonth, 1), "yyyy-MM")}`,
+      { replace: true }
+    );
+  }, [currentMonth]);
 
-  const nextUrl = useMemo(
-    () => `/calendar?date=${format(addMonths(currentMonth, 1), "yyyy-MM")}`,
-    [currentMonth]
-  );
+  const onPreviousClick = useCallback(() => {
+    navigate(
+      `/calendar?date=${format(addMonths(currentMonth, -1), "yyyy-MM")}`,
+      { replace: true }
+    );
+  }, [currentMonth]);
 
   return (
     <>
       <CalendarHeader>
-        <Container style={{ display: "flex" }}>
-          <StyledLink to={previousUrl}>
+        <CalendarHeaderContainer>
+          <CalendarHeaderButton onClick={onPreviousClick}>
             <FontAwesomeIcon icon={faChevronLeft} />
-          </StyledLink>
-          <StyledLink to={nextUrl}>
+          </CalendarHeaderButton>
+          <CalendarHeaderButton onClick={onNextClick}>
             <FontAwesomeIcon icon={faChevronRight} />
-          </StyledLink>
-          <span style={{ fontSize: "1.4rem", fontWeight: 600 }}>
-            {currentMonthName}
-          </span>
-        </Container>
+          </CalendarHeaderButton>
+          <CalendarHeaderTitle>{currentMonthName}</CalendarHeaderTitle>
+        </CalendarHeaderContainer>
       </CalendarHeader>
       <Container>
         <CalendarView month={currentMonth} />

@@ -12,7 +12,6 @@ export interface ScheduleOccurrenceViewProps {
 
 const ScheduleCard = styled.div`
   background: ${(props) => props.color};
-  border: 1px solid rgba(0, 0, 0, 0.23);
   margin: 3px 4px;
   border-radius: 4px;
   padding: 8px;
