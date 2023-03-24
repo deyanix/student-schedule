@@ -3,7 +3,6 @@ import { CalendarPage } from "../pages/CalendarPage";
 import { SchedulePage } from "../pages/SchedulePage";
 
 export const routes: RouteObject[] = [
-  { path: "/", element: <CalendarPage /> },
-  { path: "/:year/:month", element: <CalendarPage /> },
+  { path: "/calendar", element: <CalendarPage /> },
   { path: "/schedule", element: <SchedulePage /> },
 ];

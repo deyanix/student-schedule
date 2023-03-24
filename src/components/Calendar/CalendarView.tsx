@@ -14,6 +14,33 @@ import {
   CalendarDay,
   CalendarService,
 } from "../../../api/Calendar/CalendarService";
+import styled from "styled-components";
+import { transparentize } from "polished";
+
+export const StyledTable = styled.div`
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-template-rows: repeat(7, 1fr);
+  background: ${(props) => transparentize(0.8, props.theme.primary)};
+  border-radius: 8px;
+  padding: 16px;
+  gap: 8px;
+
+  @media screen and (max-width: ${(props) => props.theme.breakpoints.sm}px) {
+    gap: 2px;
+  }
+`;
+
+export const CalendarHeaderCell = styled.div`
+  font-size: 1.1em;
+  font-weight: 700;
+  padding: 16px 8px;
+  text-align: center;
+
+  @media screen and (max-width: ${(props) => props.theme.breakpoints.sm}px) {
+    padding: 8px 4px;
+  }
+`;
 
 export interface CalendarViewProps {
   month: Date;
@@ -65,25 +92,17 @@ export const CalendarView: React.FC<CalendarViewProps> = (props) => {
   }, []);
 
   return (
-    <>
-      <table style={{ border: "2px solid black", borderCollapse: "collapse" }}>
-        <thead>
-          <tr>
-            <th>MO</th>
-            <th>TU</th>
-            <th>WE</th>
-            <th>TH</th>
-            <th>FR</th>
-            <th>SA</th>
-            <th>SU</th>
-          </tr>
-        </thead>
-        <tbody>
-          {weeks.map((dates) => (
-            <CalendarWeek key={dates[0].date.toISOString()} dates={dates} />
-          ))}
-        </tbody>
-      </table>
-    </>
+    <StyledTable>
+      <CalendarHeaderCell>MON</CalendarHeaderCell>
+      <CalendarHeaderCell>TUE</CalendarHeaderCell>
+      <CalendarHeaderCell>WED</CalendarHeaderCell>
+      <CalendarHeaderCell>THU</CalendarHeaderCell>
+      <CalendarHeaderCell>FRI</CalendarHeaderCell>
+      <CalendarHeaderCell>SAT</CalendarHeaderCell>
+      <CalendarHeaderCell>SUN</CalendarHeaderCell>
+      {weeks.map((dates) => (
+        <CalendarWeek key={dates[0].date.toISOString()} dates={dates} />
+      ))}
+    </StyledTable>
   );
 };
